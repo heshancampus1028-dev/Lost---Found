@@ -2,6 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const dns = require('dns');
+
+// Node.js වල DNS resolver එක Google DNS වලට මාරු කිරීම
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 require('dotenv').config();
 
 const app = express();
