@@ -153,7 +153,7 @@ function Home() {
             onClick={scrollToFeed}
             className="bg-blue-600 dark:bg-blue-500 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-400 transition"
           >
-            {t('searchBtn') || 'Search'}
+            {t('Search') || 'Search'}
           </button>
         </motion.div>
       </div>
