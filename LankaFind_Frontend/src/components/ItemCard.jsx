@@ -16,7 +16,7 @@ const STATUS_OPTIONS = ['Pending', 'Matched', 'Claimed', 'Returned'];
 
 // Reusable card component for displaying a Lost/Found item
 // showActions=true (used on the My Reports page) shows the status dropdown + Delete button
-function ItemCard({ item, showActions = false, onStatusChange, onDelete }) {
+function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit }) {
   const { t } = useLanguage();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -40,13 +40,23 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete }) {
         reportStatus === 'Returned' ? 'border-gray-100 dark:border-slate-700 opacity-60' : 'border-gray-100 dark:border-slate-700'
       }`}
     >
-      {/* Image thumbnail, if the report has one */}
-      {hasImage && (
+      {/* Image thumbnail - always a fixed h-40 slot so every card lines up,
+          even when the report has no photo. A muted placeholder icon fills
+          the space instead of leaving it blank or shrinking the card. */}
+      {hasImage ? (
         <img
           src={getImageUrl(item.images[0])}
           alt={item.title}
           className="w-full h-40 object-cover"
         />
+      ) : (
+        <div className="w-full h-40 flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-gray-300 dark:text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-12 h-12">
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <circle cx="8.5" cy="10" r="1.5" />
+            <path d="M21 15l-5-5-9 9" />
+          </svg>
+        </div>
       )}
 
       <div className="p-5 flex flex-col justify-between flex-1">
@@ -87,7 +97,11 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete }) {
 
         <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-800 flex items-center justify-between gap-2 text-xs flex-wrap">
           {showActions || !item.verificationQuestion ? (
-            <span className="text-blue-600 dark:text-blue-400 font-medium">📞 {item.contact}</span>
+            item.contact ? (
+              <span className="text-blue-600 dark:text-blue-400 font-medium">📞 {item.contact}</span>
+            ) : (
+              <span className="text-gray-400 dark:text-gray-500 italic">{t('noContactProvided') || 'No contact number provided'}</span>
+            )
           ) : (
             <ClaimVerification item={item} />
           )}
@@ -112,6 +126,12 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete }) {
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
+              <button
+                onClick={() => onEdit(item)}
+                className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition"
+              >
+                {t('editBtn') || 'Edit'}
+              </button>
               <button
                 onClick={() => onDelete(item._id)}
                 className="font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition"

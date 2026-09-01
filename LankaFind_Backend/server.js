@@ -9,6 +9,16 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 require('dotenv').config();
 
+// Safety net: log unexpected errors instead of letting them silently kill the
+// whole server process (this is what was happening with certain malformed
+// image uploads before the upload route got its own error handling).
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ Unhandled Rejection:', reason);
+});
+
 const app = express();
 
 // Middleware setup

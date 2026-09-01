@@ -6,6 +6,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import LostItems from './pages/LostItems';
 import FoundItems from './pages/FoundItems';
+import ReportLostItem from './pages/ReportLostItem';
+import ReportFoundItem from './pages/ReportFoundItem';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyReports from './pages/MyReports';
@@ -27,7 +29,9 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/lost" element={<LostItems />} />
+            <Route path="/lost/report" element={<ReportLostItem />} />
             <Route path="/found" element={<FoundItems />} />
+            <Route path="/found/report" element={<ReportFoundItem />} />
             <Route path="/map" element={<ItemsMap />} />
             <Route path="/item/:id" element={<ItemDetail />} />
             <Route path="/poster" element={<PublicPoster />} />

@@ -61,7 +61,10 @@ function ItemsMap() {
         {loading ? (
           <div className="text-center text-gray-500 dark:text-gray-400 py-12">Loading map...</div>
         ) : (
-          <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm dark:shadow-black/20" style={{ height: '65vh' }}>
+          <div
+            className="relative z-0 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm dark:shadow-black/20"
+            style={{ height: '65vh' }}
+          >
             <MapContainer center={SRI_LANKA_CENTER} zoom={7} style={{ height: '100%', width: '100%' }}>
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

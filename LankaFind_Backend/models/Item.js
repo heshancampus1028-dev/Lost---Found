@@ -8,7 +8,8 @@ const ItemSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
+    required: false,
+    default: ''
   },
   // Category used for search/filter (kept as a separate field instead of embedding it in the description)
   category: {
@@ -37,7 +38,8 @@ const ItemSchema = new mongoose.Schema({
   },
   contact: {
     type: String,
-    required: true
+    required: false,
+    default: ''
   },
   // Reference to the User who posted this item (used for delete/status-update permission checks)
   postedBy: {

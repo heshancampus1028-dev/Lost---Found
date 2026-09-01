@@ -5,15 +5,17 @@ import ItemCard from '../components/ItemCard';
 import MatchSuggestions from '../components/MatchSuggestions';
 import ClaimsPanel from '../components/ClaimsPanel';
 import PageHeader from '../components/PageHeader';
+import EditItemModal from '../components/EditItemModal';
 import { useLanguage } from '../context/LanguageContext';
 
 // Shows the reports the logged-in user has posted, and lets them
-// toggle resolved/unresolved or delete a report.
+// toggle resolved/unresolved, edit, or delete a report.
 function MyReports() {
   const { t } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingItem, setEditingItem] = useState(null); // the item currently open in the edit modal, or null
 
   const fetchMyItems = async () => {
     try {
@@ -53,6 +55,12 @@ function MyReports() {
       console.error("Error deleting item:", err);
       alert(t('deleteFailed'));
     }
+  };
+
+  // Called by EditItemModal after a successful save
+  const handleEditSaved = (updatedItem) => {
+    setItems(items.map((item) => (item._id === updatedItem._id ? updatedItem : item)));
+    setEditingItem(null);
   };
 
   const activeItems = items.filter((item) => (item.reportStatus || 'Pending') !== 'Returned');
@@ -98,6 +106,7 @@ function MyReports() {
                         showActions
                         onStatusChange={handleStatusChange}
                         onDelete={handleDelete}
+                        onEdit={setEditingItem}
                       />
                       <MatchSuggestions itemId={item._id} accentColor={item.status === 'lost' ? 'red' : 'emerald'} />
                       {item.verificationQuestion && <ClaimsPanel itemId={item._id} />}
@@ -118,12 +127,21 @@ function MyReports() {
                       showActions
                       onStatusChange={handleStatusChange}
                       onDelete={handleDelete}
+                      onEdit={setEditingItem}
                     />
                   ))}
                 </div>
               </div>
             )}
           </>
+        )}
+
+        {editingItem && (
+          <EditItemModal
+            item={editingItem}
+            onClose={() => setEditingItem(null)}
+            onSaved={handleEditSaved}
+          />
         )}
       </div>
     </div>

@@ -73,6 +73,47 @@ const translations = {
   sessionExpired: { en: 'Your session has expired, please log in again!', si: 'ඔබගේ session එක කල් ඉකුත් වී ඇත, නැවත ඇතුල් වන්න!' },
   postFailed: { en: 'Could not submit the item. Please try again!', si: 'අයිතමය ඇතුළත් කිරීමට නොහැකි විය. නැවත උත්සාහ කරන්න!' },
 
+  // Standalone Report Lost/Found pages
+  backToLostItems: { en: '← Back to Lost Items', si: '← නැති වූ දේ වෙත ආපසු' },
+  backToFoundItems: { en: '← Back to Found Items', si: '← හමු වූ දේ වෙත ආපසු' },
+  viewLostItems: { en: 'View Lost Items', si: 'නැති වූ දේ බලන්න' },
+  viewFoundItems: { en: 'View Found Items', si: 'හමු වූ දේ බලන්න' },
+  mapPinHint: { en: '📍 Optional: click the map below to pin the exact spot', si: '📍 විකල්පයකි: නිශ්චිත ස්ථානය සලකුණු කිරීමට පහත සිතියම මත ක්ලික් කරන්න' },
+  labelPhoto: { en: 'Photo (optional, up to 3)', si: 'ඡායාරූපය (විකල්පයකි, උපරිම 3ක්)' },
+  optional: { en: 'optional', si: 'විකල්පයකි' },
+  noContactProvided: { en: 'No contact number provided', si: 'දුරකථන අංකයක් ලබා දී නැත' },
+
+  // Found-item verification question
+  labelVerificationQuestion: { en: 'Verification Question (optional)', si: 'තහවුරු කිරීමේ ප්‍රශ්නය (විකල්පයකි)' },
+  placeholderVerificationQuestion: { en: "e.g. What's inside the wallet?", si: 'උදා: පසුම්බිය ඇතුළේ මොනවද තියෙන්නේ?' },
+  verificationHint: {
+    en: 'If set, claimants must answer this correctly before they see your contact info.',
+    si: 'මෙය සකසා ඇත්නම්, ඔබගේ දුරකථන අංකය බැලීමට පෙර හිමිකම් කියන්නා මෙයට නිවැරදිව පිළිතුරු දිය යුතුය.',
+  },
+  labelCorrectAnswer: { en: 'Correct Answer', si: 'නිවැරදි පිළිතුර' },
+  placeholderCorrectAnswer: { en: 'Only you will know this', si: 'මෙය දන්නේ ඔබට පමණි' },
+
+  // Edit Report modal
+  editBtn: { en: 'Edit', si: 'සංස්කරණය' },
+  editReportTitle: { en: 'Edit Report', si: 'වාර්තාව සංස්කරණය කරන්න' },
+  fillRequiredFields: { en: 'Please fill in the required fields.', si: 'අවශ්‍ය කරන ක්ෂේත්‍ර පුරවන්න.' },
+  cancelBtn: { en: 'Cancel', si: 'අවලංගු කරන්න' },
+  savingBtn: { en: 'Saving...', si: 'සුරකිමින්...' },
+  saveChangesBtn: { en: 'Save Changes', si: 'වෙනස්කම් සුරකින්න' },
+  leaveBlankToKeep: { en: 'Leave blank to keep the current answer', si: 'වත්මන් පිළිතුර තබා ගැනීමට හිස්ව තබන්න' },
+  leaveBlankHint: {
+    en: 'Leave this empty to keep the previously saved answer.',
+    si: 'කලින් සුරැකූ පිළිතුර තබා ගැනීමට මෙය හිස්ව තබන්න.',
+  },
+
+  // Auto-match suggestions
+  checkMatches: { en: '🔍 Check possible matches', si: '🔍 ගැලපෙන දේ පරීක්ෂා කරන්න' },
+  possibleMatchesFound: { en: '✨ Possible matches found', si: '✨ ගැලපෙන දේ හම්බුනා' },
+  noMatchesFound: { en: 'No matches found yet.', si: 'තවම ගැලපෙන දෙයක් හම්බුනේ නෑ.' },
+
+  // Messaging
+  sendMessage: { en: '💬 Message', si: '💬 පණිවිඩය' },
+
   // Search / Filter
   searchPlaceholder: { en: 'Search by title or location...', si: 'නම හෝ ස්ථානය අනුව සොයන්න...' },
   allCategories: { en: 'All Categories', si: 'සියලුම වර්ග' },
@@ -114,6 +155,8 @@ const translations = {
   badgeLost: { en: '🛑 LOST', si: '🛑 නැති වූ' },
   badgeFound: { en: '✅ FOUND', si: '✅ හමු වූ' },
   badgeResolved: { en: '✔️ Resolved', si: '✔️ විසඳුනා' },
+  generateQRPoster: { en: '🖨️ Generate QR Poster', si: '🖨️ QR පෝස්ටරය සාදන්න' },
+  backToLankaFind: { en: '← Back to LankaFind', si: '← LankaFind වෙත ආපසු' },
 };
 
 export default translations;
