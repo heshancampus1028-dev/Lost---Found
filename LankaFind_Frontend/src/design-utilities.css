@@ -1,0 +1,66 @@
+/* ============================================================
+   FUTURISTIC DESIGN UTILITIES
+   Add these to your existing index.css (below the @tailwind directives).
+   These are reusable classes you sprinkle onto existing buttons/cards -
+   they don't replace anything, just layer on top.
+   ============================================================ */
+
+/* Soft glow shadow for buttons/cards on hover - gives a "lit up" feel */
+.glow-hover {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.glow-hover:hover {
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.3), 0 8px 24px -4px rgba(249, 115, 22, 0.35);
+  transform: translateY(-2px);
+}
+.dark .glow-hover:hover {
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3), 0 8px 24px -4px rgba(56, 189, 248, 0.35);
+}
+
+/* Glassmorphism surface - use on modals, navbars, floating panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Animated gradient border ring - for "featured" cards or CTAs */
+.gradient-ring {
+  position: relative;
+}
+.gradient-ring::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(120deg, #f97316, #ef4444, #f97316);
+  background-size: 200% 200%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gradient-shift 3s ease infinite;
+  pointer-events: none;
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Smooth scale-tap feedback for any clickable element */
+.tap-scale {
+  transition: transform 0.15s ease;
+}
+.tap-scale:active {
+  transform: scale(0.96);
+}
+
+/* Consistent rounded-corner scale across the app (optional helper aliases) */
+.card-radius   { border-radius: 1.25rem; }  /* ~rounded-2xl */
+.button-radius { border-radius: 0.875rem; } /* ~rounded-xl  */
+.pill-radius   { border-radius: 9999px; }   /* full pill */

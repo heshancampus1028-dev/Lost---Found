@@ -16,10 +16,10 @@ function PageHeader({ icon, title, subtitle, accent = 'from-blue-600 to-blue-400
         transition={{ duration: 0.5 }}
         className="relative z-10 px-6 py-7 sm:py-8"
       >
-        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-          {icon && <span>{icon}</span>} {title}
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          {title}
         </h1>
-        {subtitle && <p className="text-white/80 text-sm mt-1">{subtitle}</p>}
+        {subtitle && <p className="text-white/80 text-sm mt-1.5 font-normal">{subtitle}</p>}
       </motion.div>
     </div>
   );
