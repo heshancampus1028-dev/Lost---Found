@@ -19,11 +19,8 @@
       "dest": "LankaFind_Backend/server.js"
     },
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "LankaFind_Frontend/index.html"
+      "dest": "LankaFind_Frontend/$1"
     }
   ]
 }
