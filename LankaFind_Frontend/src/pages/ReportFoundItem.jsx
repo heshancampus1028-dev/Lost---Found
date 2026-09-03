@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import MatchSuggestions from '../components/MatchSuggestions';
 import LocationPicker from '../components/LocationPicker';
 import PageHeader from '../components/PageHeader';
+import { isAllowedImageFile, IMAGE_ACCEPT_ATTR } from '../utils/fileValidation';
 
 function ReportFoundItem() {
   const { isAuthenticated } = useAuth();
@@ -32,11 +33,12 @@ function ReportFoundItem() {
   // Handle image selection (limit to 3 files)
   // Only jpg/jpeg/png/webp are accepted by the backend - filter out anything
   // else here (e.g. .avif, .heic) so a bad file never gets sent in the request.
+  // isAllowedImageFile also falls back to checking the extension, since some
+  // browsers report an empty file.type for .webp files.
   const handleImageChange = (e) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const selected = Array.from(e.target.files);
 
-    const validFiles = selected.filter((file) => allowedTypes.includes(file.type));
+    const validFiles = selected.filter(isAllowedImageFile);
     const rejectedCount = selected.length - validFiles.length;
 
     if (rejectedCount > 0) {
@@ -265,7 +267,7 @@ function ReportFoundItem() {
               </label>
               <input
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
+                accept={IMAGE_ACCEPT_ATTR}
                 multiple
                 onChange={handleImageChange}
                 className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-emerald-50 dark:file:bg-emerald-500/10 file:text-emerald-600 dark:file:text-emerald-400 file:font-medium hover:file:bg-emerald-100 dark:hover:file:bg-emerald-500/20"
