@@ -243,7 +243,7 @@ function Messages() {
   }, [thread]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-[38px] pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <PageHeader icon="💬" title="Messages" subtitle="Chat with finders and owners, no phone number needed." accent="from-blue-600 to-indigo-500" />
 
