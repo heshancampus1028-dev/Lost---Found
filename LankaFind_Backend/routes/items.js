@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const Item = require('../models/Item');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const uploadBufferToCloudinary = require('../utils/cloudinaryUpload');
 
 // Wraps multer so that fileFilter/size/type errors are caught and sent back
 // as a normal JSON response, instead of throwing inside the multipart stream
@@ -29,8 +30,16 @@ router.post('/', auth, safeUpload, async (req, res) => {
   try {
     const { title, description, status, location, contact, category, verificationQuestion, verificationAnswer, latitude, longitude } = req.body;
 
-    // req.files is populated by multer if images were sent (field name: "images")
-    const imageFilenames = req.files ? req.files.map((file) => file.filename) : [];
+    // req.files is populated by multer (in memory) if images were sent (field name: "images").
+    // Each buffer is streamed up to Cloudinary here, and we store the permanent
+    // secure_url it returns - not a local filename, since that would vanish on Vercel.
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      const uploadResults = await Promise.all(
+        req.files.map((file) => uploadBufferToCloudinary(file.buffer, 'lankafind/items'))
+      );
+      imageUrls = uploadResults.map((result) => result.secure_url);
+    }
 
     // If a verification question + answer were provided, hash the answer before saving.
     // Only the question is ever shown publicly - the answer never leaves the server as plain text.
@@ -49,7 +58,7 @@ router.post('/', auth, safeUpload, async (req, res) => {
       location,
       contact,
       category,
-      images: imageFilenames,
+      images: imageUrls,
       latitude: latitude ? parseFloat(latitude) : null,
       longitude: longitude ? parseFloat(longitude) : null,
       verificationQuestion: questionToSave,

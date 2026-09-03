@@ -27,8 +27,15 @@ const api = axios.create({
   baseURL: API_BASE_URL
 });
 
-// item.images stores just the filename (e.g. "169999-photo.jpg"), so build the full URL here
+// item.images now stores a full Cloudinary URL for newly-uploaded photos.
+// Older items (posted before the Cloudinary migration) may still have a bare
+// local filename saved - fall back to the old /uploads path for those so
+// they don't break, even though those specific files are gone on Vercel.
 export function getImageUrl(filename) {
+  if (!filename) return '';
+  if (filename.startsWith('http://') || filename.startsWith('https://')) {
+    return filename;
+  }
   return `${SERVER_ROOT_URL}/uploads/${filename}`;
 }
 

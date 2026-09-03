@@ -1,23 +1,13 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 
-// Make sure the uploads folder exists before multer tries to write into it
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: function (req, file, cb) {
-    // e.g. 1721650000000-345612345.jpg  (timestamp + random number keeps names unique)
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Files are kept in memory as a Buffer instead of being written to disk -
+// the route handler streams each buffer straight to Cloudinary. This is
+// required for Vercel: serverless functions have a read-only, ephemeral
+// filesystem, so anything written to a local uploads/ folder disappears as
+// soon as that function's container gets recycled (this was why uploaded
+// item photos were showing as broken images after deploy).
+const storage = multer.memoryStorage();
 
 // Only allow image files
 function fileFilter(req, file, cb) {
