@@ -93,7 +93,6 @@ function Messages() {
   const [newText, setNewText] = useState('');
   const [sending, setSending] = useState(false);
 
-  const messagesContainerRef = useRef(null); // the scrollable chat pane itself
 
   // `silent: true` is used by the background polling below — it refreshes data
   // without flipping the loading spinners on, so the UI doesn't flicker every
@@ -151,16 +150,9 @@ function Messages() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    // scrollIntoView() on bottomRef used to scroll the WHOLE page (its
-    // nearest scrollable ancestor could be the window itself on first load),
-    // which is why opening Messages jumped the page down. Setting scrollTop
-    // directly on the chat pane keeps the scroll contained to just that box.
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [thread]);
+  // Auto-scroll-to-bottom was removed entirely - even scoped to just this
+  // container, jumping the chat pane on every new/polled message was more
+  // disruptive than helpful. Scrolling in the thread is now fully manual.
 
   // Poll the open thread every few seconds so incoming replies show up without
   // a page refresh. This is a lightweight stand-in for real-time push; a
@@ -353,7 +345,6 @@ function Messages() {
                 </div>
 
                 <div
-                  ref={messagesContainerRef}
                   className="flex-1 overflow-y-auto p-4 space-y-1"
                   style={{
                     backgroundColor: 'var(--chat-bg, transparent)',
