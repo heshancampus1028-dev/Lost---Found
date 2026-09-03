@@ -1,9 +1,27 @@
 import axios from 'axios';
 
-// Backend base URL defined in one place
-// (replace with an environment variable when deploying to production)
-const API_BASE_URL = 'http://localhost:5000/api';
-const SERVER_ROOT_URL = 'http://localhost:5000'; // without /api, used for static file (image) links
+// Backend base URL defined in one place.
+//
+// In local dev, the frontend (Vite, port 5173) and backend (Express, port
+// 5000) run as separate servers, so we need the full localhost URL.
+//
+// In production (Vercel), vercel.json rewrites "/api/*" on the SAME domain
+// to the backend function, so a relative "/api" path is correct — hardcoding
+// localhost here was the actual bug: the deployed frontend was trying to
+// call the visitor's own machine instead of the deployed backend.
+//
+// VITE_API_URL / VITE_SERVER_URL can still be set in Vercel's Environment
+// Variables if the backend ever lives on a different domain (e.g. deployed
+// as its own separate Vercel project) — see note at the bottom of this file.
+const isDev = import.meta.env.DEV;
+
+const API_BASE_URL = isDev
+  ? 'http://localhost:5000/api'
+  : (import.meta.env.VITE_API_URL || '/api');
+
+const SERVER_ROOT_URL = isDev
+  ? 'http://localhost:5000'
+  : (import.meta.env.VITE_SERVER_URL || ''); // '' = same origin, used for static file (image) links
 
 const api = axios.create({
   baseURL: API_BASE_URL
