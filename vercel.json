@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "LankaFind_Backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "LankaFind_Frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "LankaFind_Backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "LankaFind_Frontend/$1"
+    }
+  ]
+}
