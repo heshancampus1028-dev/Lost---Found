@@ -82,7 +82,7 @@ function Home() {
             transition={{ duration: 0.5 }}
             className="glass-panel inline-block px-4 py-1.5 rounded-full text-xs font-semibold text-white/80 mb-6 tracking-wide"
           >
-            🎓 University of Sri Jayewardenepura
+            🔎 Lose it. Find it. Get it back.
           </motion.span>
 
           <motion.h1
