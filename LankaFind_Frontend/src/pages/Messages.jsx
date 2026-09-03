@@ -244,7 +244,7 @@ function Messages() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <PageHeader icon="💬" title="Messages" subtitle="Chat with finders and owners, no phone number needed." accent="from-blue-600 to-indigo-500" />
 
         <div className="grid grid-cols-1 md:grid-cols-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-black/20 border border-gray-100 dark:border-slate-800 overflow-hidden h-[75vh]">
