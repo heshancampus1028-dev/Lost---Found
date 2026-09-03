@@ -67,11 +67,10 @@ function MyReports() {
   const resolvedItems = items.filter((item) => item.reportStatus === 'Returned');
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-[38px] pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-10">
 
         <PageHeader
-          icon="📋"
           title={t('myReportsTitle')}
           subtitle={t('myReportsSubtitle')}
           accent="from-blue-600 to-indigo-500"

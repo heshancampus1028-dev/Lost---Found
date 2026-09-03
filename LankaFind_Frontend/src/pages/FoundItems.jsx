@@ -49,22 +49,22 @@ function FoundItems() {
   }, [searchTerm, filterCategory, filterLocation, dateFrom, dateTo]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
-          <PageHeader
-            icon="🟢"
-            title={t('recentFoundReports')}
-            subtitle={t('recentFoundSubtitle')}
-            accent="from-emerald-600 to-teal-500"
-          />
-          <Link
-            to="/found/report"
-            className="whitespace-nowrap bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 shadow-md transition text-center"
-          >
-            {t('reportFoundTitle') || 'Report a Found Item'}
-          </Link>
-        </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-[38px] pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <PageHeader
+          icon="🟢"
+          title={t('recentFoundReports')}
+          subtitle={t('recentFoundSubtitle')}
+          accent="from-emerald-600 to-teal-500"
+          action={
+            <Link
+              to="/found/report"
+              className="whitespace-nowrap bg-white/15 hover:bg-white/25 text-white font-semibold px-5 py-2.5 rounded-xl border border-white/30 backdrop-blur-sm transition text-center"
+            >
+              {t('reportFoundTitle') || 'Report a Found Item'}
+            </Link>
+          }
+        />
 
         <div className="space-y-6 mt-6">
           <SearchFilterBar
@@ -88,7 +88,7 @@ function FoundItems() {
               {t('noFoundMatch')}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {foundItemsList.map((item, i) => (
                 <motion.div
                   key={item._id}

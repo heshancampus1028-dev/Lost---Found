@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const auth = require('../middleware/auth');
 
 // REGISTER ROUTE (http://localhost:5000/api/auth/register)
 router.post('/register', async (req, res) => {
@@ -77,6 +78,51 @@ router.post('/login', async (req, res) => {
       }
     });
 
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// GET CURRENT USER'S FULL PROFILE (http://localhost:5000/api/auth/me)
+// Used by the Profile page to load phone/address/bio, which aren't in the login response.
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found.' });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// UPDATE PROFILE (http://localhost:5000/api/auth/profile)
+// Lets a logged-in user add/edit their name, phone, address, and bio.
+// Email is intentionally not editable here (it's the account's unique identifier).
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { name, phone, address, bio } = req.body;
+
+    const update = {};
+    if (name !== undefined) update.name = name;
+    if (phone !== undefined) update.phone = phone;
+    if (address !== undefined) update.address = address;
+    if (bio !== undefined) update.bio = bio;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: update },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found.' });
+    }
+
+    res.json({ msg: 'Profile updated successfully!', user });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

@@ -159,7 +159,7 @@ function Home() {
       </div>
 
       {/* ── FEED ───────────────────────────────────────────── */}
-      <div id="feed" className="max-w-4xl mx-auto px-4 pt-20 pb-16">
+      <div id="feed" className="max-w-7xl mx-auto px-4 pt-20 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -201,7 +201,7 @@ function Home() {
             {t('noItemsMatch')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item, i) => (
               <motion.div
                 key={item._id}

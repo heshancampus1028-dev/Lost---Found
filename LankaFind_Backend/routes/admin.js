@@ -95,4 +95,29 @@ router.delete('/items/:id', async (req, res) => {
   }
 });
 
+// 4. GET ROUTE: List every registered user, with how many reports each has posted
+// http://localhost:5000/api/admin/users
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+
+    // Count reports per user in one aggregation query, then merge into the user list
+    const counts = await Item.aggregate([
+      { $group: { _id: '$postedBy', count: { $sum: 1 } } }
+    ]);
+    const countMap = {};
+    counts.forEach((c) => { countMap[c._id?.toString()] = c.count; });
+
+    const usersWithCounts = users.map((u) => ({
+      ...u.toObject(),
+      reportCount: countMap[u._id.toString()] || 0
+    }));
+
+    res.json(usersWithCounts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;

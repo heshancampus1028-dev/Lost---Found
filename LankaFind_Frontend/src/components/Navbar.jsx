@@ -58,7 +58,6 @@ function Navbar() {
             <Link to="/lost" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">{t('navLost')}</Link>
             <Link to="/found" className="text-gray-600 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 font-medium transition">{t('navFound')}</Link>
             <Link to="/map" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Map</Link>
-            <Link to="/poster" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition hidden md:inline">Poster</Link>
 
             {isAuthenticated ? (
               <>
@@ -76,7 +75,13 @@ function Navbar() {
                     Admin
                   </Link>
                 )}
-                <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{t('navGreeting')}, {user.name.split(' ')[0]} 👋</span>
+                <Link
+                  to="/profile"
+                  className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline hover:text-blue-600 dark:hover:text-blue-400 transition font-medium"
+                  title="View / edit profile"
+                >
+                  {t('navGreeting')}, {user.name.split(' ')[0]} 👋
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-slate-700 font-medium transition"
@@ -90,22 +95,45 @@ function Navbar() {
               </Link>
             )}
 
-            {/* Theme toggle */}
+            {/* Theme toggle - modern pill switch with a sliding sun/moon icon */}
             <button
               onClick={toggleTheme}
               title="Toggle theme"
-              className="text-lg text-gray-500 dark:text-amber-400 border border-gray-200 dark:border-slate-700 rounded-full w-9 h-9 flex items-center justify-center hover:border-blue-400 dark:hover:border-amber-400 transition"
+              aria-label="Toggle dark mode"
+              className={`relative w-14 h-8 rounded-full flex items-center px-1 transition-colors duration-300 border ${
+                isDark
+                  ? 'bg-blue-950 border-blue-500/40'
+                  : 'bg-amber-50 border-amber-200'
+              }`}
             >
-              {isDark ? '☀️' : '🌙'}
+              <span
+                className={`absolute top-1 w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-transform duration-300 ${
+                  isDark ? 'translate-x-6 bg-slate-800' : 'translate-x-0 bg-white'
+                }`}
+              >
+                {isDark ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-blue-300">
+                    <path d="M21.75 15.002a9.72 9.72 0 01-3.752.752 9.75 9.75 0 01-9.75-9.75c0-1.33.27-2.598.752-3.752A9.753 9.753 0 003 11.25 9.75 9.75 0 0012.75 21a9.753 9.753 0 009-5.998z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-amber-500">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                  </svg>
+                )}
+              </span>
             </button>
 
-            {/* Language toggle */}
+            {/* Language toggle - full language name, not abbreviated */}
             <button
               onClick={toggleLanguage}
               title="Switch language"
-              className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-slate-700 rounded-full px-3 py-1.5 hover:border-blue-400 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+              className="flex items-center gap-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700 rounded-full px-3.5 py-1.5 hover:border-blue-400 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
             >
-              🌐 {language === 'en' ? 'සිං' : 'EN'}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-3.5 h-3.5">
+                <circle cx="12" cy="12" r="9" />
+                <path strokeLinecap="round" d="M3 12h18M12 3c2.4 2.6 3.6 5.7 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-5.7-3.6-9s1.2-6.4 3.6-9z" />
+              </svg>
+              {language === 'en' ? 'සිංහල' : 'English'}
             </button>
           </div>
         </div>

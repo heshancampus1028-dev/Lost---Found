@@ -28,8 +28,10 @@ const CATEGORY_COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-ambe
 function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [items, setItems] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [error, setError] = useState('');
 
   const fetchStats = async () => {
@@ -55,9 +57,21 @@ function AdminDashboard() {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/admin/users');
+      setUsers(response.data);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
     fetchItems();
+    fetchUsers();
   }, []);
 
   const handleDelete = async (id) => {
@@ -78,8 +92,8 @@ function AdminDashboard() {
   const maxTrendCount = stats ? Math.max(1, ...stats.trend.map((t) => t.count)) : 1;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-[38px] pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-10">
 
         <PageHeader icon="🛠️" title="Admin Dashboard" subtitle="Platform-wide statistics and item moderation." accent="from-amber-600 to-orange-500" />
 
@@ -126,14 +140,19 @@ function AdminDashboard() {
               {stats.trend.length === 0 ? (
                 <p className="text-sm text-gray-400 dark:text-gray-500">No reports in this period.</p>
               ) : (
-                <div className="flex items-end gap-2 h-32">
+                <div className="flex items-end gap-2">
                   {stats.trend.map((t) => (
                     <div key={t.date} className="flex-1 flex flex-col items-center gap-1">
-                      <div
-                        className="w-full bg-blue-500 dark:bg-amber-500 rounded-t-md"
-                        style={{ height: `${Math.max((t.count / maxTrendCount) * 100, 6)}%` }}
-                        title={`${t.date}: ${t.count}`}
-                      />
+                      {/* Fixed-height wrapper (h-24 = 96px) gives the bar below a definite
+                          height to resolve its percentage against - without this, a
+                          percentage height on a flex-column child collapses to 0. */}
+                      <div className="w-full h-24 flex items-end">
+                        <div
+                          className="w-full bg-blue-500 dark:bg-amber-500 rounded-t-md min-h-[4px]"
+                          style={{ height: `${Math.max((t.count / maxTrendCount) * 100, 6)}%` }}
+                          title={`${t.date}: ${t.count}`}
+                        />
+                      </div>
                       <span className="text-[10px] text-gray-400 dark:text-gray-500 rotate-0 whitespace-nowrap">{t.date.slice(5)}</span>
                     </div>
                   ))}
@@ -190,6 +209,48 @@ function AdminDashboard() {
                         >
                           Delete
                         </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Registered users */}
+        <div>
+          <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4">Users ({users.length})</h2>
+
+          {loadingUsers ? (
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">Loading users...</div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-black/20 border border-gray-100 dark:border-slate-800 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-slate-800">
+                    <th className="p-3 font-semibold">Name</th>
+                    <th className="p-3 font-semibold">Email</th>
+                    <th className="p-3 font-semibold">Role</th>
+                    <th className="p-3 font-semibold">Reports Posted</th>
+                    <th className="p-3 font-semibold">Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u._id} className="border-b border-gray-50 dark:border-slate-800 last:border-0">
+                      <td className="p-3 font-medium text-gray-800 dark:text-white">{u.name}</td>
+                      <td className="p-3 text-gray-600 dark:text-gray-300">{u.email}</td>
+                      <td className="p-3">
+                        {u.isAdmin ? (
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">Admin</span>
+                        ) : (
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400">User</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-gray-600 dark:text-gray-300">{u.reportCount}</td>
+                      <td className="p-3 text-gray-400 dark:text-gray-500">
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
                       </td>
                     </tr>
                   ))}

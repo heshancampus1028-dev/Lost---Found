@@ -12,13 +12,6 @@ const STATUS_STYLES = {
   Claimed: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/30',
   Returned: 'bg-green-50 dark:bg-emerald-500/10 text-green-600 dark:text-emerald-400 border-green-100 dark:border-emerald-500/30'
 };
-// Matching, slightly stronger tone used for the editable status pill in the actions row
-const STATUS_SELECT_STYLES = {
-  Pending: 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-slate-600 focus:ring-gray-400',
-  Matched: 'bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30 focus:ring-blue-400',
-  Claimed: 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30 focus:ring-amber-400',
-  Returned: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30 focus:ring-emerald-400'
-};
 const STATUS_OPTIONS = ['Pending', 'Matched', 'Claimed', 'Returned'];
 
 // Reusable card component for displaying a Lost/Found item
@@ -102,66 +95,64 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit 
           <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-3">{item.description}</p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-800">
-          {!showActions && (
-            <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
-              {!item.verificationQuestion ? (
-                item.contact ? (
-                  <span className="text-blue-600 dark:text-blue-400 font-medium">📞 {item.contact}</span>
-                ) : (
-                  <span className="text-gray-400 dark:text-gray-500 italic">{t('noContactProvided') || 'No contact number provided'}</span>
-                )
-              ) : (
-                <ClaimVerification item={item} />
-              )}
+        <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-800 flex items-center justify-between gap-2 text-xs flex-wrap">
+          {showActions || !item.verificationQuestion ? (
+            item.contact ? (
+              <span className="text-blue-600 dark:text-blue-400 font-medium">📞 {item.contact}</span>
+            ) : (
+              <span className="text-gray-400 dark:text-gray-500 italic">{t('noContactProvided') || 'No contact number provided'}</span>
+            )
+          ) : (
+            <ClaimVerification item={item} />
+          )}
 
-              {isAuthenticated && !isOwnItem && (
-                <button
-                  onClick={handleMessageClick}
-                  className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 rounded-full px-3 py-1.5 transition"
-                >
-                  Message
-                </button>
-              )}
-            </div>
+          {!showActions && isAuthenticated && !isOwnItem && (
+            <button
+              onClick={handleMessageClick}
+              className="tap-scale text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-500/30 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition"
+            >
+              {t('sendMessage') || 'Message'}
+            </button>
+          )}
+
+          {!showActions && isOwnItem && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-700">
+              {t('yourReport') || 'Your Report'}
+            </span>
+          )}
+
+          {!showActions && !isAuthenticated && (
+            <Link
+              to="/login"
+              className="tap-scale text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-100 dark:hover:border-blue-500/30 transition"
+            >
+              {t('loginToMessage') || 'Login to message'}
+            </Link>
           )}
 
           {showActions && (
-            <div className="flex flex-col gap-3">
-              {item.contact && (
-                <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">📞 {item.contact}</span>
-              )}
-
-              <div className="flex items-center gap-2 flex-wrap">
-                <select
-                  value={reportStatus}
-                  onChange={(e) => onStatusChange(item._id, e.target.value)}
-                  className={`text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border focus:outline-none focus:ring-2 appearance-none bg-no-repeat bg-[right_0.6rem_center] ${STATUS_SELECT_STYLES[reportStatus]}`}
-                  style={{
-                    backgroundImage:
-                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23888'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.19l3.71-3.96a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E\")",
-                    backgroundSize: '0.9em'
-                  }}
-                >
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-
-                <button
-                  onClick={() => onEdit(item)}
-                  className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-100 dark:border-blue-500/30 rounded-full px-3 py-1.5 transition"
-                >
-                  {t('editBtn') || 'Edit'}
-                </button>
-
-                <button
-                  onClick={() => onDelete(item._id)}
-                  className="text-xs font-semibold text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-100 dark:border-red-500/30 rounded-full px-3 py-1.5 transition"
-                >
-                  {t('deleteBtn') || 'Delete'}
-                </button>
-              </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={reportStatus}
+                onChange={(e) => onStatusChange(item._id, e.target.value)}
+                className="text-xs font-semibold border border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => onEdit(item)}
+                className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition"
+              >
+                {t('editBtn') || 'Edit'}
+              </button>
+              <button
+                onClick={() => onDelete(item._id)}
+                className="font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition"
+              >
+                {t('deleteBtn')}
+              </button>
             </div>
           )}
         </div>

@@ -38,8 +38,8 @@ function ItemsMap() {
   const visibleItems = filter === 'all' ? items : items.filter((item) => item.status === filter);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-[38px] pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-4">
         <PageHeader icon="🗺️" title="Map View" subtitle="Reports that have a pinned location." accent="from-blue-600 to-cyan-500" />
 
         <div className="flex gap-2">

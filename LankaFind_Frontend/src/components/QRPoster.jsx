@@ -3,7 +3,9 @@ import { QRCodeCanvas } from 'qrcode.react';
 
 // Renders a QR code pointing at `url`, inside a simple printable poster layout,
 // with a button to download the whole poster as a PNG image.
-function QRPoster({ url, title, subtitle, accentColor = '#2563eb' }) {
+// compact=true renders a much smaller, label-only version (no download button,
+// no poster padding) - used for small placements like the footer.
+function QRPoster({ url, title, subtitle, accentColor = '#2563eb', compact = false }) {
   const posterRef = useRef(null);
 
   const handleDownload = () => {
@@ -54,6 +56,18 @@ function QRPoster({ url, title, subtitle, accentColor = '#2563eb' }) {
     link.href = posterCanvas.toDataURL('image/png');
     link.click();
   };
+
+  if (compact) {
+    return (
+      <div
+        ref={posterRef}
+        className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center gap-1.5 w-fit"
+      >
+        <QRCodeCanvas value={url} size={92} fgColor="#1f2937" />
+        <p className="text-[10px] font-semibold text-gray-500 text-center leading-tight">{subtitle}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">

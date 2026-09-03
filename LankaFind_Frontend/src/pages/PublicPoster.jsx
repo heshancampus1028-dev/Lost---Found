@@ -7,7 +7,7 @@ function PublicPoster() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto space-y-6 text-center">
+      <div className="max-w-7xl mx-auto space-y-6 text-center">
         <PageHeader
           icon="🖨️"
           title="LankaFind Awareness Poster"

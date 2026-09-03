@@ -25,6 +25,16 @@ export function AuthProvider({ children }) {
     setUser(userData);
   };
 
+  // Called after a successful profile save (Profile page) - merges the updated
+  // fields into both the in-memory user and localStorage, without needing a re-login.
+  const updateUser = (updatedFields) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedFields };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   // Clears localStorage and state on logout
   const logout = () => {
     localStorage.removeItem('user');
@@ -33,13 +43,13 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// Custom hook - call useAuth() from any component to access user/login/logout
+// Custom hook - call useAuth() from any component to access user/login/logout/updateUser
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

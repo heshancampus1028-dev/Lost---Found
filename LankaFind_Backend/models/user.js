@@ -25,6 +25,26 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+
+  // ── Extra profile details ─────────────────────────────
+  // All optional - filled in later from the Profile page, not required at register.
+  phone: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  address: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: 300,
+    default: ''
+  },
+
   createdAt: {
     type: Date,
     default: Date.now // automatically saved when the account is created

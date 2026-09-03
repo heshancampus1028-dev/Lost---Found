@@ -112,7 +112,9 @@ const translations = {
   noMatchesFound: { en: 'No matches found yet.', si: 'තවම ගැලපෙන දෙයක් හම්බුනේ නෑ.' },
 
   // Messaging
-  sendMessage: { en: '💬 Message', si: '💬 පණිවිඩය' },
+  sendMessage: { en: 'Message', si: 'පණිවිඩය' },
+  yourReport: { en: 'Your Report', si: 'ඔබේ වාර්තාව' },
+  loginToMessage: { en: 'Login to message', si: 'පණිවිඩ යැවීමට ඇතුල් වන්න' },
 
   // Search / Filter
   searchPlaceholder: { en: 'Search by title or location...', si: 'නම හෝ ස්ථානය අනුව සොයන්න...' },
@@ -137,7 +139,7 @@ const translations = {
   loginHere: { en: 'Login here', si: 'මෙතනින් ඇතුල් වන්න' },
 
   // My Reports page
-  myReportsTitle: { en: 'My Reports 📋', si: 'මගේ වාර්තා 📋' },
+  myReportsTitle: { en: 'My Reports', si: 'මගේ වාර්තා' },
   myReportsSubtitle: { en: 'Manage the lost/found reports you have posted here.', si: 'ඔබ පළ කළ නැති වූ/හමු වූ වාර්තා මෙතන කළමනාකරණය කරන්න.' },
   noReportsYet: { en: '📍 You have not posted any reports yet.', si: '📍 ඔබ තවම කිසිම වාර්තාවක් පළ කර නැත.' },
   activeReports: { en: 'Active', si: 'ක්‍රියාකාරී' },
