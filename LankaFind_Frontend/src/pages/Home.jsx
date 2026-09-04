@@ -19,12 +19,14 @@ function Home() {
   const { t } = useLanguage();
 
   // Only the hero search bar's typed text is needed now - it hands off to
-  // the Lost Items page's own search/filter instead of a feed on this page.
+  // the Lost/Found Items page's own search/filter instead of a feed on this page.
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchStatus, setSearchStatus] = useState('lost'); // 'lost' | 'found' - which page the search goes to
 
   const goToSearch = () => {
     const query = searchTerm.trim();
-    navigate(query ? `/lost?search=${encodeURIComponent(query)}` : '/lost');
+    const path = searchStatus === 'found' ? '/found' : '/lost';
+    navigate(query ? `${path}?search=${encodeURIComponent(query)}` : path);
   };
 
   return (
@@ -108,23 +110,51 @@ function Home() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="max-w-xl mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl dark:shadow-black/40 p-2.5 flex gap-2"
+          className="max-w-xl mx-auto"
         >
-          <span className="pl-3 flex items-center text-gray-400 dark:text-gray-500">🔎</span>
-          <input
-            type="text"
-            placeholder={t('searchPlaceholder')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && goToSearch()}
-            className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm"
-          />
-          <button
-            onClick={goToSearch}
-            className="bg-blue-600 dark:bg-blue-500 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-400 transition"
-          >
-            {t('Search') || 'Search'}
-          </button>
+          {/* Lost/Found toggle - decides which page the search below navigates to */}
+          <div className="flex justify-center gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() => setSearchStatus('lost')}
+              className={`px-4 py-1 rounded-full text-xs font-semibold transition ${
+                searchStatus === 'lost'
+                  ? 'bg-red-500 text-white shadow'
+                  : 'glass-panel text-white/70 hover:text-white'
+              }`}
+            >
+              🔴 {t('statusLost') || 'Lost'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchStatus('found')}
+              className={`px-4 py-1 rounded-full text-xs font-semibold transition ${
+                searchStatus === 'found'
+                  ? 'bg-emerald-500 text-white shadow'
+                  : 'glass-panel text-white/70 hover:text-white'
+              }`}
+            >
+              🟢 {t('statusFound') || 'Found'}
+            </button>
+          </div>
+
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-100 dark:border-slate-800 rounded-2xl shadow-2xl dark:shadow-black/40 p-2.5 flex gap-2">
+            <span className="pl-3 flex items-center text-gray-400 dark:text-gray-500">🔎</span>
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && goToSearch()}
+              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm"
+            />
+            <button
+              onClick={goToSearch}
+              className="bg-blue-600 dark:bg-blue-500 text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-400 transition"
+            >
+              {t('Search') || 'Search'}
+            </button>
+          </div>
         </motion.div>
       </div>
 
