@@ -150,6 +150,27 @@ function Home() {
             </motion.div>
           ))}
         </div>
+
+        {/* Secure claims highlight */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="mt-6 bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-500/10 dark:to-amber-500/5 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left"
+        >
+          <div className="w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center text-2xl shadow-md">
+            🔒
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800 dark:text-white mb-1">Verified &amp; Secure Claims</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              Finders can set a secret verification question - only someone who knows the right
+              answer unlocks the contact details. Every claim attempt is logged, so you can see
+              exactly who tried to claim your item and when.
+            </p>
+          </div>
+        </motion.div>
       </section>
 
     </div>
