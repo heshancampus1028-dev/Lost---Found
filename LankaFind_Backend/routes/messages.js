@@ -110,4 +110,27 @@ router.get('/thread/:itemId/:otherUserId', auth, async (req, res) => {
   }
 });
 
+// 4. DELETE ROUTE: Delete an entire conversation thread with one person about one item.
+// Only removes messages the logged-in user is a participant in (sender or receiver) -
+// it can't be used to delete someone else's unrelated conversation.
+// http://localhost:5000/api/messages/thread/:itemId/:otherUserId
+router.delete('/thread/:itemId/:otherUserId', auth, async (req, res) => {
+  try {
+    const { itemId, otherUserId } = req.params;
+
+    const result = await Message.deleteMany({
+      item: itemId,
+      $or: [
+        { sender: req.user.id, receiver: otherUserId },
+        { sender: otherUserId, receiver: req.user.id }
+      ]
+    });
+
+    res.json({ msg: 'Conversation deleted.', deletedCount: result.deletedCount });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;

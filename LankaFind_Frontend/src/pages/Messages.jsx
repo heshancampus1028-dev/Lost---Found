@@ -186,6 +186,26 @@ function Messages() {
     fetchThread(convo.itemId, convo.otherUserId);
   };
 
+  // Deletes the whole thread with the active conversation's other participant
+  // (for this item) after confirming with the user, then closes the thread
+  // and drops it from the conversation list.
+  const handleDeleteConversation = async () => {
+    if (!active) return;
+    if (!window.confirm(`Delete this conversation with ${active.otherUserName}? This cannot be undone.`)) return;
+
+    try {
+      await api.delete(`/messages/thread/${active.itemId}/${active.otherUserId}`);
+      setConversations((prev) =>
+        prev.filter((c) => !(c.itemId === active.itemId && c.otherUserId === active.otherUserId))
+      );
+      setActive(null);
+      setThread([]);
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
+      alert('Failed to delete conversation.');
+    }
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newText.trim() || !active) return;
@@ -338,10 +358,18 @@ function Messages() {
               <>
                 <div className="p-3 border-b border-gray-100 dark:border-slate-800 flex items-center gap-3 bg-white dark:bg-slate-900">
                   <Avatar name={active.otherUserName} image={active.itemImage ? getImageUrl(active.itemImage) : null} size={38} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{active.otherUserName}</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500 truncate">Re: {active.itemTitle}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleDeleteConversation}
+                    title="Delete conversation"
+                    className="flex-shrink-0 text-xs font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-1.5 rounded-full transition"
+                  >
+                    Delete
+                  </button>
                 </div>
 
                 <div
