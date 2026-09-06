@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
 const Item = require('../models/Item');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const uploadBufferToCloudinary = require('../utils/cloudinaryUpload');
 
 // Wraps multer so that fileFilter/size/type errors are caught and sent back
 // as a normal JSON response, instead of throwing inside the multipart stream
@@ -30,16 +31,8 @@ router.post('/', auth, safeUpload, async (req, res) => {
   try {
     const { title, description, status, location, contact, category, verificationQuestion, verificationAnswer, latitude, longitude } = req.body;
 
-    // req.files is populated by multer (in memory) if images were sent (field name: "images").
-    // Each buffer is streamed up to Cloudinary here, and we store the permanent
-    // secure_url it returns - not a local filename, since that would vanish on Vercel.
-    let imageUrls = [];
-    if (req.files && req.files.length > 0) {
-      const uploadResults = await Promise.all(
-        req.files.map((file) => uploadBufferToCloudinary(file.buffer, 'lankafind/items'))
-      );
-      imageUrls = uploadResults.map((result) => result.secure_url);
-    }
+    // req.files is populated by multer if images were sent (field name: "images")
+    const imageFilenames = req.files ? req.files.map((file) => file.filename) : [];
 
     // If a verification question + answer were provided, hash the answer before saving.
     // Only the question is ever shown publicly - the answer never leaves the server as plain text.
@@ -58,7 +51,7 @@ router.post('/', auth, safeUpload, async (req, res) => {
       location,
       contact,
       category,
-      images: imageUrls,
+      images: imageFilenames,
       latitude: latitude ? parseFloat(latitude) : null,
       longitude: longitude ? parseFloat(longitude) : null,
       verificationQuestion: questionToSave,
@@ -260,13 +253,18 @@ router.get('/:id', async (req, res) => {
 });
 
 // 7. PATCH ROUTE: Edit a report's own details (owner only)
-// Lets the poster fix a typo, update the location/description/contact, etc.
-// after the report has already been published. Images are left as-is here -
-// only text/number fields and the verification Q&A can be changed.
-// Body may include any of: title, description, location, category, contact,
-// latitude, longitude, verificationQuestion, verificationAnswer
+// Lets the poster fix a typo, update the location/description/contact,
+// verification Q&A, and now also add/replace photos, after the report has
+// already been published.
+// This is now multipart/form-data (like the create route) so photos can
+// travel alongside the text fields. Body may include any of: title,
+// description, location, category, contact, latitude, longitude,
+// verificationQuestion, verificationAnswer, plus an "images" file field
+// (up to 3) and an optional "removeImages" field (JSON array of filenames
+// to delete from the existing set, e.g. when the user removes one preview
+// without uploading a replacement).
 // http://localhost:5000/api/items/:id
-router.patch('/:id', auth, async (req, res) => {
+router.patch('/:id', auth, safeUpload, async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
     if (!item) {
@@ -287,7 +285,8 @@ router.patch('/:id', auth, async (req, res) => {
       latitude,
       longitude,
       verificationQuestion,
-      verificationAnswer
+      verificationAnswer,
+      removeImages
     } = req.body;
 
     if (title !== undefined) item.title = title;
@@ -306,6 +305,47 @@ router.patch('/:id', auth, async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       item.verificationAnswerHash = await bcrypt.hash(verificationAnswer, salt);
     }
+
+    // Start from the existing image list, then apply removals + additions.
+    let updatedImages = [...item.images];
+    let filesToDeleteFromDisk = [];
+
+    // Explicit removals (e.g. the user cleared one existing photo preview
+    // without necessarily uploading a new one)
+    if (removeImages) {
+      try {
+        const toRemove = JSON.parse(removeImages);
+        if (Array.isArray(toRemove) && toRemove.length > 0) {
+          filesToDeleteFromDisk.push(...toRemove);
+          updatedImages = updatedImages.filter((filename) => !toRemove.includes(filename));
+        }
+      } catch (e) {
+        // Malformed removeImages - ignore rather than fail the whole update
+        console.error('Could not parse removeImages:', e.message);
+      }
+    }
+
+    // New uploads get appended, capped at 3 total - oldest images drop off
+    // first if the combined count would exceed the limit.
+    if (req.files && req.files.length > 0) {
+      const newFilenames = req.files.map((f) => f.filename);
+      updatedImages = [...updatedImages, ...newFilenames].slice(-3);
+
+      // Anything that fell off the 3-image cap should also be cleaned up
+      const dropped = [...item.images, ...newFilenames].filter((f) => !updatedImages.includes(f));
+      filesToDeleteFromDisk.push(...dropped);
+    }
+
+    item.images = updatedImages;
+
+    // Best-effort cleanup of replaced/removed files - failing to delete an
+    // orphaned file shouldn't block the actual update from saving.
+    filesToDeleteFromDisk.forEach((filename) => {
+      const filePath = path.join(__dirname, '..', 'uploads', filename);
+      fs.unlink(filePath, (err) => {
+        if (err && err.code !== 'ENOENT') console.error('Could not delete old image:', err.message);
+      });
+    });
 
     await item.save();
 

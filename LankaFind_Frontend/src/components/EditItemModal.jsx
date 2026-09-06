@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../api/axios';
+import api, { getImageUrl } from '../api/axios';
 import { useLanguage } from '../context/LanguageContext';
 
-// A simple modal for editing the text fields of an already-published report.
-// Images are left untouched here - only title/category/location/description/
-// contact/verification Q&A can be changed after posting.
+// A modal for editing an already-published report - text fields, the
+// verification Q&A, and now photos (add new ones, or remove existing ones).
 function EditItemModal({ item, onClose, onSaved }) {
   const { t } = useLanguage();
   const isFound = item.status === 'found';
@@ -19,8 +18,40 @@ function EditItemModal({ item, onClose, onSaved }) {
   const [verificationQuestion, setVerificationQuestion] = useState(item.verificationQuestion || '');
   const [verificationAnswer, setVerificationAnswer] = useState(''); // left blank unless the owner wants to change it
 
+  // Existing photos already on the item (filenames), minus any the user removes.
+  // newImages holds newly selected File objects to upload alongside the edit.
+  const [existingImages, setExistingImages] = useState(item.images || []);
+  const [removedImages, setRemovedImages] = useState([]); // filenames explicitly removed
+  const [newImages, setNewImages] = useState([]);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const totalPhotoCount = existingImages.length + newImages.length;
+
+  // Same validation as the report-creation forms - only accept real image
+  // types so a bad file never reaches the upload request.
+  const handleImageChange = (e) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const selected = Array.from(e.target.files);
+    const validFiles = selected.filter((file) => allowedTypes.includes(file.type));
+    const rejectedCount = selected.length - validFiles.length;
+
+    if (rejectedCount > 0) {
+      setError(`${rejectedCount} file(s) skipped - only JPG, PNG, or WEBP images are supported.`);
+    } else {
+      setError('');
+    }
+
+    // Cap combined existing + new photos at 3
+    const room = Math.max(0, 3 - existingImages.length);
+    setNewImages(validFiles.slice(0, room));
+  };
+
+  const handleRemoveExisting = (filename) => {
+    setExistingImages((prev) => prev.filter((f) => f !== filename));
+    setRemovedImages((prev) => [...prev, filename]);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,19 +64,24 @@ function EditItemModal({ item, onClose, onSaved }) {
 
     setSaving(true);
     try {
-      const payload = {
-        title,
-        category,
-        location,
-        description,
-        contact,
-        verificationQuestion: isFound ? verificationQuestion : undefined
-      };
-      if (isFound && verificationAnswer) {
-        payload.verificationAnswer = verificationAnswer;
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('category', category);
+      formData.append('location', location);
+      formData.append('description', description);
+      formData.append('contact', contact);
+      if (isFound) {
+        formData.append('verificationQuestion', verificationQuestion);
+        if (verificationAnswer) {
+          formData.append('verificationAnswer', verificationAnswer);
+        }
       }
+      if (removedImages.length > 0) {
+        formData.append('removeImages', JSON.stringify(removedImages));
+      }
+      newImages.forEach((file) => formData.append('images', file));
 
-      const response = await api.patch(`/items/${item._id}`, payload);
+      const response = await api.patch(`/items/${item._id}`, formData);
       onSaved(response.data.item);
     } catch (err) {
       console.error('Error updating item:', err);
@@ -154,6 +190,50 @@ function EditItemModal({ item, onClose, onSaved }) {
               onChange={(e) => setDescription(e.target.value)}
               className={`w-full px-4 py-2 border border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-2xl focus:outline-none focus:ring-2 ${ringClass} transition resize-none`}
             ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              {t('labelPhoto') || 'Photo (optional, up to 3)'}
+            </label>
+
+            {existingImages.length > 0 && (
+              <div className="flex gap-2 mb-2 flex-wrap">
+                {existingImages.map((filename) => (
+                  <div key={filename} className="relative w-16 h-16">
+                    <img
+                      src={getImageUrl(filename)}
+                      alt="Current"
+                      className="w-16 h-16 object-cover rounded-xl border border-gray-200 dark:border-slate-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExisting(filename)}
+                      title="Remove this photo"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none flex items-center justify-center shadow"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {totalPhotoCount < 3 && (
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                multiple
+                onChange={handleImageChange}
+                className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:bg-blue-50 dark:file:bg-blue-500/10 file:text-blue-600 dark:file:text-blue-400 file:font-medium hover:file:bg-blue-100 dark:hover:file:bg-blue-500/20"
+              />
+            )}
+            {newImages.length > 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{newImages.length} new file(s) selected</p>
+            )}
+            {totalPhotoCount >= 3 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Maximum of 3 photos reached - remove one to add another.</p>
+            )}
           </div>
 
           {isFound && (
