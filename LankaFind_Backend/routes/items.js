@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const path = require('path');
-const fs = require('fs');
 const Item = require('../models/Item');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const uploadBufferToCloudinary = require('../utils/cloudinaryUpload');
 
 // Wraps multer so that fileFilter/size/type errors are caught and sent back
 // as a normal JSON response, instead of throwing inside the multipart stream
@@ -25,17 +24,29 @@ function safeUpload(req, res, next) {
   });
 }
 
+// Uploads every buffered file (req.files, from multer memoryStorage) to
+// Cloudinary in parallel, and returns the array of secure_url strings to save
+// on the Item document. Returns [] if no files were sent.
+async function uploadFilesToCloudinary(files) {
+  if (!files || files.length === 0) return [];
+  const uploads = await Promise.all(
+    files.map((file) => uploadBufferToCloudinary(file.buffer))
+  );
+  return uploads.map((result) => result.secure_url);
+}
+
 // 1. POST ROUTE: Create a new item (must be logged in)
 // http://localhost:5000/api/items
 router.post('/', auth, safeUpload, async (req, res) => {
   try {
     const { title, description, status, location, contact, category, verificationQuestion, verificationAnswer, latitude, longitude } = req.body;
 
-    // req.files is populated by multer if images were sent (field name: "images")
-    const imageFilenames = req.files ? req.files.map((file) => file.filename) : [];
+    // Upload each image buffer to Cloudinary and collect the returned URLs.
+    // (Previously this read req.files[].filename, which only exists with
+    // multer's diskStorage - since upload.js switched to memoryStorage for
+    // Cloudinary, that was always undefined and no image ever got uploaded.)
+    const imageUrls = await uploadFilesToCloudinary(req.files);
 
-    // If a verification question + answer were provided, hash the answer before saving.
-    // Only the question is ever shown publicly - the answer never leaves the server as plain text.
     let verificationAnswerHash = null;
     let questionToSave = null;
     if (verificationQuestion && verificationAnswer) {
@@ -51,17 +62,16 @@ router.post('/', auth, safeUpload, async (req, res) => {
       location,
       contact,
       category,
-      images: imageFilenames,
+      images: imageUrls,
       latitude: latitude ? parseFloat(latitude) : null,
       longitude: longitude ? parseFloat(longitude) : null,
       verificationQuestion: questionToSave,
       verificationAnswerHash,
-      postedBy: req.user.id // auto-attach the logged-in user's id
+      postedBy: req.user.id
     });
 
     const item = await newItem.save();
 
-    // Never send the answer hash back to the client, even the owner's own response
     const itemToReturn = item.toObject();
     delete itemToReturn.verificationAnswerHash;
 
@@ -82,23 +92,18 @@ router.get('/', async (req, res) => {
 
     if (status) filter.status = status;
     if (category) filter.category = category;
-
-    // Separate, more precise location filter (e.g. "Kandy", "Colombo")
     if (location) filter.location = { $regex: location, $options: 'i' };
 
-    // Date range filter based on when the report was created
     if (dateFrom || dateTo) {
       filter.createdAt = {};
       if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
       if (dateTo) {
-        // include the whole "dateTo" day, not just 00:00
         const endOfDay = new Date(dateTo);
         endOfDay.setHours(23, 59, 59, 999);
         filter.createdAt.$lte = endOfDay;
       }
     }
 
-    // Match keyword against title or location (case-insensitive)
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -106,7 +111,7 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const items = await Item.find(filter).select('-verificationAnswerHash').sort({ createdAt: -1 }); // newest first
+    const items = await Item.find(filter).select('-verificationAnswerHash').sort({ createdAt: -1 });
     res.json(items);
   } catch (err) {
     console.error(err.message);
@@ -115,18 +120,6 @@ router.get('/', async (req, res) => {
 });
 
 // 4. GET ROUTE: Auto-matching - find possible opposite-type matches for one item
-// (a "lost" item looks for "found" items, and vice-versa)
-// Category is NOT a hard filter anymore (people often miscategorize items).
-// Instead, everything is scored: category match, location word overlap,
-// title word overlap, and how close the two reports are in time. Only
-// candidates that clear a minimum score are returned, so unrelated items
-// don't flood the results.
-//
-// NOTE: generic words (e.g. "bag", "phone", "black", "key") are excluded from
-// the overlap check, and a single overlapping word is no longer enough on its
-// own to count as a match - it needs to be backed up by another signal
-// (category, location, or a second shared word). This avoids false matches
-// where two completely unrelated items just happen to share one common word.
 // http://localhost:5000/api/items/:id/matches
 router.get('/:id/matches', async (req, res) => {
   try {
@@ -137,9 +130,6 @@ router.get('/:id/matches', async (req, res) => {
 
     const oppositeStatus = sourceItem.status === 'lost' ? 'found' : 'lost';
 
-    // Common words that are too generic to mean anything on their own
-    // (colors, materials, and very common item nouns). Extend this list
-    // as you notice more false-positive matches in practice.
     const STOPWORDS = new Set([
       'the', 'and', 'with', 'for', 'was', 'this', 'that', 'from', 'have',
       'black', 'white', 'red', 'blue', 'green', 'grey', 'gray', 'pink',
@@ -148,7 +138,6 @@ router.get('/:id/matches', async (req, res) => {
       'wallet', 'item', 'items', 'lost', 'found'
     ]);
 
-    // Helper: split text into meaningful lowercase words (skip tiny, common, or stop words)
     const toWords = (text) =>
       (text || '')
         .toLowerCase()
@@ -158,17 +147,10 @@ router.get('/:id/matches', async (req, res) => {
     const sourceLocationWords = toWords(sourceItem.location);
     const sourceTitleWords = toWords(sourceItem.title);
 
-    // Only consider items reported within a 60-day window of this one.
-    // This is intentionally generous - it's just here to keep the candidate
-    // pool reasonable, not to be the deciding factor. Actual match quality
-    // is still decided by the scoring below (category/location/title), with
-    // time-closeness only ever adding a small bonus, never a requirement.
     const windowMs = 60 * 24 * 60 * 60 * 1000;
     const dateFrom = new Date(sourceItem.createdAt.getTime() - windowMs);
     const dateTo = new Date(sourceItem.createdAt.getTime() + windowMs);
 
-    // Broad candidate pool: just opposite status, not resolved, within the date window.
-    // No category filter here - category is scored instead, so a miscategorized item can still surface.
     const candidates = await Item.find({
       _id: { $ne: sourceItem._id },
       status: oppositeStatus,
@@ -178,16 +160,14 @@ router.get('/:id/matches', async (req, res) => {
 
     const scored = candidates.map((candidate) => {
       let score = 0;
-      let signals = 0; // how many independent things point to a match
+      let signals = 0;
 
-      // Category match is a strong signal, but no longer required
       const categoryMatch = candidate.category === sourceItem.category;
       if (categoryMatch) {
         score += 3;
         signals += 1;
       }
 
-      // Location word overlap (e.g. "University Library" vs "Library")
       const candidateLocationWords = toWords(candidate.location);
       const locationOverlap = sourceLocationWords.some((w) => candidateLocationWords.includes(w));
       if (locationOverlap) {
@@ -195,7 +175,6 @@ router.get('/:id/matches', async (req, res) => {
         signals += 1;
       }
 
-      // Title word overlap (e.g. "Samsung S25" vs "Samsung s25 phone")
       const candidateTitleWords = toWords(candidate.title);
       const sharedTitleWords = sourceTitleWords.filter((w) => candidateTitleWords.includes(w)).length;
       if (sharedTitleWords > 0) {
@@ -203,15 +182,12 @@ router.get('/:id/matches', async (req, res) => {
         signals += 1;
       }
 
-      // Closer in time = higher score (up to +3, capped low since time alone proves nothing)
       const daysApart = Math.abs(candidate.createdAt - sourceItem.createdAt) / (24 * 60 * 60 * 1000);
       score += Math.max(0, 3 - daysApart / 4);
 
       return { candidate, score, signals };
     });
 
-    // Require at least 2 independent signals (e.g. category + location, or
-    // 2 shared title words) - a single weak overlap is never enough by itself.
     const MIN_SCORE = 5;
     const MIN_SIGNALS = 2;
     const relevant = scored.filter((s) => s.score >= MIN_SCORE && s.signals >= MIN_SIGNALS);
@@ -237,7 +213,7 @@ router.get('/my', auth, async (req, res) => {
   }
 });
 
-// 6. GET ROUTE: Get a single item by id (public - used for item detail / QR poster pages)
+// 6. GET ROUTE: Get a single item by id
 // http://localhost:5000/api/items/64f.../single
 router.get('/:id', async (req, res) => {
   try {
@@ -253,16 +229,6 @@ router.get('/:id', async (req, res) => {
 });
 
 // 7. PATCH ROUTE: Edit a report's own details (owner only)
-// Lets the poster fix a typo, update the location/description/contact,
-// verification Q&A, and now also add/replace photos, after the report has
-// already been published.
-// This is now multipart/form-data (like the create route) so photos can
-// travel alongside the text fields. Body may include any of: title,
-// description, location, category, contact, latitude, longitude,
-// verificationQuestion, verificationAnswer, plus an "images" file field
-// (up to 3) and an optional "removeImages" field (JSON array of filenames
-// to delete from the existing set, e.g. when the user removes one preview
-// without uploading a replacement).
 // http://localhost:5000/api/items/:id
 router.patch('/:id', auth, safeUpload, async (req, res) => {
   try {
@@ -271,7 +237,6 @@ router.patch('/:id', auth, safeUpload, async (req, res) => {
       return res.status(404).json({ msg: 'Item not found.' });
     }
 
-    // Only the owner can edit their own report
     if (item.postedBy.toString() !== req.user.id) {
       return res.status(403).json({ msg: 'You do not have permission to edit this item.' });
     }
@@ -297,55 +262,41 @@ router.patch('/:id', auth, safeUpload, async (req, res) => {
     if (latitude !== undefined) item.latitude = latitude ? parseFloat(latitude) : null;
     if (longitude !== undefined) item.longitude = longitude ? parseFloat(longitude) : null;
 
-    // The question can be cleared/changed freely since it's shown publicly.
-    // The answer is only ever re-hashed if a new one was actually typed in -
-    // we never overwrite it with a blank hash just because the field was empty.
     if (verificationQuestion !== undefined) item.verificationQuestion = verificationQuestion || null;
     if (verificationAnswer) {
       const salt = await bcrypt.genSalt(10);
       item.verificationAnswerHash = await bcrypt.hash(verificationAnswer, salt);
     }
 
-    // Start from the existing image list, then apply removals + additions.
+    // Start from the existing image URL list, then apply removals + additions.
     let updatedImages = [...item.images];
-    let filesToDeleteFromDisk = [];
 
-    // Explicit removals (e.g. the user cleared one existing photo preview
-    // without necessarily uploading a new one)
+    // Explicit removals - removeImages now holds Cloudinary URLs (not filenames),
+    // since that's what's stored on the item after the fix above.
     if (removeImages) {
       try {
         const toRemove = JSON.parse(removeImages);
         if (Array.isArray(toRemove) && toRemove.length > 0) {
-          filesToDeleteFromDisk.push(...toRemove);
-          updatedImages = updatedImages.filter((filename) => !toRemove.includes(filename));
+          updatedImages = updatedImages.filter((url) => !toRemove.includes(url));
         }
       } catch (e) {
-        // Malformed removeImages - ignore rather than fail the whole update
         console.error('Could not parse removeImages:', e.message);
       }
     }
 
-    // New uploads get appended, capped at 3 total - oldest images drop off
-    // first if the combined count would exceed the limit.
+    // New uploads go to Cloudinary and get appended, capped at 3 total.
     if (req.files && req.files.length > 0) {
-      const newFilenames = req.files.map((f) => f.filename);
-      updatedImages = [...updatedImages, ...newFilenames].slice(-3);
-
-      // Anything that fell off the 3-image cap should also be cleaned up
-      const dropped = [...item.images, ...newFilenames].filter((f) => !updatedImages.includes(f));
-      filesToDeleteFromDisk.push(...dropped);
+      const newUrls = await uploadFilesToCloudinary(req.files);
+      updatedImages = [...updatedImages, ...newUrls].slice(-3);
     }
 
     item.images = updatedImages;
 
-    // Best-effort cleanup of replaced/removed files - failing to delete an
-    // orphaned file shouldn't block the actual update from saving.
-    filesToDeleteFromDisk.forEach((filename) => {
-      const filePath = path.join(__dirname, '..', 'uploads', filename);
-      fs.unlink(filePath, (err) => {
-        if (err && err.code !== 'ENOENT') console.error('Could not delete old image:', err.message);
-      });
-    });
+    // Note: old Cloudinary images that get replaced/removed are left on
+    // Cloudinary rather than deleted (deleting needs the image's public_id,
+    // which isn't stored yet - only the secure_url is). Not a functional bug,
+    // just unused storage building up over time; can be improved later by
+    // saving { url, publicId } pairs instead of plain URL strings.
 
     await item.save();
 
@@ -360,7 +311,6 @@ router.patch('/:id', auth, safeUpload, async (req, res) => {
 });
 
 // 8. PATCH ROUTE: Update an item's reportStatus (owner only)
-// Body: { status: "Pending" | "Matched" | "Claimed" | "Returned" }
 // http://localhost:5000/api/items/:id/status
 router.patch('/:id/status', auth, async (req, res) => {
   try {
@@ -376,7 +326,6 @@ router.patch('/:id/status', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Item not found.' });
     }
 
-    // Only the owner can update the status
     if (item.postedBy.toString() !== req.user.id) {
       return res.status(403).json({ msg: 'You do not have permission to modify this item.' });
     }
