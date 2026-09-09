@@ -48,7 +48,7 @@ function Navbar() {
     // Same gradient the hero sections use, so the strip behind the pill
     // matches the page background instead of showing the default body color.
     // hero-gradient already carries its own light/dark variants.
-    <div className="sticky top-0 z-[9999] hero-gradient">
+    <div className="hero-gradient">
       <div className="pt-4 pb-2 px-4">
         <nav className="max-w-6xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
           <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2">
