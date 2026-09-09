@@ -86,7 +86,7 @@ function Navbar() {
           Elsewhere it matches the app's normal light/dark background. */}
       <div className={`${backdropClass} transition-colors`}>
         <div className="pt-4 pb-2 px-4">
-          <nav className="max-w-6xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
+          <nav className={`max-w-6xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-all ${mobileOpen ? 'rounded-3xl' : 'rounded-full'}`}>
             <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2">
 
               {/* Logo (text only) */}
