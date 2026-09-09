@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,6 +10,17 @@ function Navbar() {
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Only Home/Login/Register render their own hero-gradient section, so
+  // the navbar should only wear that dark-navy backdrop there. Every other
+  // page (Lost, Found, Map, Profile, etc.) uses the app's normal light/dark
+  // background, so the navbar should match that instead - white in light
+  // mode, the app's near-black slate in dark mode.
+  const isHeroPage = ['/', '/login', '/register'].includes(pathname);
+  const backdropClass = isHeroPage
+    ? 'hero-gradient'
+    : 'bg-white dark:bg-slate-950';
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false); // hamburger dropdown (mobile only)
@@ -70,9 +81,10 @@ function Navbar() {
   return (
     <>
       {/* Same gradient the hero sections use, so the strip behind the pill
-          matches the page background instead of showing the default body color.
-          hero-gradient already carries its own light/dark variants. */}
-      <div className="hero-gradient">
+          matches the page background instead of showing the default body color
+          - but only on pages that actually render a hero (Home/Login/Register).
+          Elsewhere it matches the app's normal light/dark background. */}
+      <div className={`${backdropClass} transition-colors`}>
         <div className="pt-4 pb-2 px-4">
           <nav className="max-w-6xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
             <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2">
