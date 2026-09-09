@@ -63,7 +63,6 @@ function Navbar() {
               <Link to="/lost" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition whitespace-nowrap shrink-0">{t('navLost')}</Link>
               <Link to="/found" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-black/5 dark:hover:bg-white/5 transition whitespace-nowrap shrink-0">{t('navFound')}</Link>
               <Link to="/map" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden sm:inline-block whitespace-nowrap shrink-0">Map</Link>
-              <Link to="/poster" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden md:inline-block whitespace-nowrap shrink-0">Poster</Link>
 
               {isAuthenticated && (
                 <>
