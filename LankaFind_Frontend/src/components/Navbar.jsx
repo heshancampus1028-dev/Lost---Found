@@ -69,12 +69,10 @@ function Navbar() {
 
   return (
     <>
-      {/* No background of our own here - we overlay directly on top of
-          whatever the page renders (usually its own hero-gradient section),
-          so the color behind the pill is always an exact match, not a
-          second gradient block that can create a visible seam. The negative
-          bottom margin pulls the page content up underneath us. */}
-      <div className="relative z-40 -mb-20">
+      {/* Same gradient the hero sections use, so the strip behind the pill
+          matches the page background instead of showing the default body color.
+          hero-gradient already carries its own light/dark variants. */}
+      <div className="hero-gradient">
         <div className="pt-4 pb-2 px-4">
           <nav className="max-w-6xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
             <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2">
