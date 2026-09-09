@@ -50,8 +50,8 @@ function Navbar() {
     // hero-gradient already carries its own light/dark variants.
     <div className="sticky top-0 z-[9999] hero-gradient">
       <div className="pt-4 pb-2 px-4">
-        <nav className="max-w-5xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
-          <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2 overflow-x-auto scrollbar-hide">
+        <nav className="max-w-6xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
+          <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2">
 
             {/* Logo (text only) */}
             <Link to="/" className="text-lg font-bold text-blue-600 dark:text-blue-400 tracking-wide shrink-0">
