@@ -99,7 +99,10 @@ function Navbar() {
     ) : null;
 
   return (
-    <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-md dark:shadow-black/30 sticky top-0 z-[9999] border-b border-transparent dark:border-amber-500/20 transition-colors">
+    // hero-gradient carries its own light/dark variants, so the strip behind
+    // the nav bar always matches whatever the hero sections are using.
+    <div className="sticky top-0 z-[9999] hero-gradient transition-colors">
+    <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-md dark:shadow-black/30 border-b border-transparent dark:border-amber-500/20 transition-colors">
       {/* w-full here (rather than assuming page content never overflows) is
           what keeps the whole site pinned to the device width on mobile - a
           single wide element anywhere else in the app can no longer drag the
@@ -234,6 +237,7 @@ function Navbar() {
         </div>
       )}
     </nav>
+    </div>
   );
 }
 
