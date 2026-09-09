@@ -56,6 +56,12 @@
     radial-gradient(circle at 85% 15%, rgba(245, 166, 35, 0.28), transparent 45%),
     radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.18), transparent 45%),
     linear-gradient(180deg, #0b1739 0%, #10204d 55%, #142561 100%);
+  /* Anchoring to the viewport (rather than each element's own box) is what
+     makes this gradient line up seamlessly between separate elements that
+     both use this class - e.g. the navbar sitting directly above a page's
+     hero section - instead of each one repainting its own independent
+     gradient and creating a visible seam. */
+  background-attachment: fixed;
 }
 
 /* Frosted-glass panel, used for chips/buttons that sit on top of the dark hero */
