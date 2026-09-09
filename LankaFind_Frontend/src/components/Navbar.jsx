@@ -51,7 +51,7 @@ function Navbar() {
     <div className="sticky top-0 z-[9999] hero-gradient">
       <div className="pt-4 pb-2 px-4">
         <nav className="max-w-5xl mx-auto bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg rounded-full shadow-lg dark:shadow-black/30 border border-gray-200/60 dark:border-amber-500/20 transition-colors">
-          <div className="flex justify-between items-center h-14 pl-5 pr-2">
+          <div className="flex justify-between items-center h-14 pl-5 pr-2 gap-2 overflow-x-auto scrollbar-hide">
 
             {/* Logo (text only) */}
             <Link to="/" className="text-lg font-bold text-blue-600 dark:text-blue-400 tracking-wide shrink-0">
@@ -59,16 +59,16 @@ function Navbar() {
             </Link>
 
             {/* Center links */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Link to="/lost" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition">{t('navLost')}</Link>
-              <Link to="/found" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-black/5 dark:hover:bg-white/5 transition">{t('navFound')}</Link>
-              <Link to="/map" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden sm:inline-block">Map</Link>
-              <Link to="/poster" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden md:inline-block">Poster</Link>
+            <div className="flex items-center gap-1">
+              <Link to="/lost" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition whitespace-nowrap shrink-0">{t('navLost')}</Link>
+              <Link to="/found" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-black/5 dark:hover:bg-white/5 transition whitespace-nowrap shrink-0">{t('navFound')}</Link>
+              <Link to="/map" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden sm:inline-block whitespace-nowrap shrink-0">Map</Link>
+              <Link to="/poster" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden md:inline-block whitespace-nowrap shrink-0">Poster</Link>
 
               {isAuthenticated && (
                 <>
-                  <Link to="/my-reports" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden md:inline-block">{t('navMyReports')}</Link>
-                  <Link to="/messages" className="relative px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden lg:inline-block">
+                  <Link to="/my-reports" className="px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden md:inline-block whitespace-nowrap shrink-0">{t('navMyReports')}</Link>
+                  <Link to="/messages" className="relative px-3 py-1.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-black/5 dark:hover:bg-white/5 transition hidden lg:inline-block whitespace-nowrap shrink-0">
                     Messages
                     {unreadCount > 0 && (
                       <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
@@ -77,7 +77,7 @@ function Navbar() {
                     )}
                   </Link>
                   {user.isAdmin && (
-                    <Link to="/admin" className="px-3 py-1.5 rounded-full text-sm font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-black/5 dark:hover:bg-white/5 transition hidden lg:inline-block">
+                    <Link to="/admin" className="px-3 py-1.5 rounded-full text-sm font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-black/5 dark:hover:bg-white/5 transition hidden lg:inline-block whitespace-nowrap shrink-0">
                       Admin
                     </Link>
                   )}
@@ -91,20 +91,20 @@ function Navbar() {
                 <>
                   <Link
                     to="/profile"
-                    className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                    className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline hover:text-blue-600 dark:hover:text-blue-400 transition whitespace-nowrap"
                     title="View profile"
                   >
                     {t('navGreeting')}, {user.name.split(' ')[0]} 👋
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 font-medium text-sm transition"
+                    className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 font-medium text-sm transition whitespace-nowrap"
                   >
                     {t('navLogout')}
                   </button>
                 </>
               ) : (
-                <Link to="/login" className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-400 font-medium text-sm transition shadow-sm">
+                <Link to="/login" className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-400 font-medium text-sm transition shadow-sm whitespace-nowrap">
                   {t('navLogin')}
                 </Link>
               )}
