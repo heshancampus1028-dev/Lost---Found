@@ -35,7 +35,9 @@ function LostItems() {
           if (dateTo) params.dateTo = dateTo;
 
           const response = await api.get('/items', { params });
-          setLostItemsList(response.data);
+          // /items now returns { items, total, page, totalPages } instead of
+          // a plain array (added for pagination), so the list lives one level deeper.
+          setLostItemsList(response.data.items);
           setLoading(false);
         } catch (err) {
           console.error("Error fetching lost items:", err);

@@ -14,6 +14,17 @@ const STATUS_STYLES = {
 };
 const STATUS_OPTIONS = ['Pending', 'Matched', 'Claimed', 'Returned'];
 
+// Inserts a Cloudinary transformation segment into an existing Cloudinary URL
+// so the browser downloads a small, compressed, auto-format thumbnail instead
+// of the original full-size upload. A card thumbnail never needs more than
+// ~400px wide, so there's no reason to ship a 3000px original over the network.
+// Non-Cloudinary URLs (or anything unexpected) are returned unchanged - this
+// only ever narrows what gets requested, never breaks a working image.
+function getThumbnailUrl(url) {
+  if (!url || !url.includes('/upload/')) return url;
+  return url.replace('/upload/', '/upload/w_400,q_auto,f_auto/');
+}
+
 // Reusable card component for displaying a Lost/Found item
 // showActions=true (used on the My Reports page) shows the status dropdown + Delete button
 function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit }) {
@@ -45,8 +56,10 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit 
           the space instead of leaving it blank or shrinking the card. */}
       {hasImage ? (
         <img
-          src={getImageUrl(item.images[0])}
+          src={getThumbnailUrl(getImageUrl(item.images[0]))}
           alt={item.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-40 object-cover"
         />
       ) : (
@@ -161,4 +174,7 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit 
   );
 }
 
-export default ItemCard;
+// Wrapped in memo so a card only re-renders when its own props actually
+// change - without this, updating one item in a 20-card list state array
+// causes React to re-render all 20 cards, not just the one that changed.
+export default React.memo(ItemCard);

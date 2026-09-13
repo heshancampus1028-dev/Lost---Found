@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const dns = require('dns');
 
@@ -23,6 +24,13 @@ const app = express();
 
 // Middleware setup
 app.use(cors());
+
+// gzip-compresses every JSON/text response before sending it over the
+// network. Item listing responses (dozens of items with descriptions,
+// Cloudinary URLs, etc.) shrink significantly, which matters most on
+// slower mobile connections. Must be registered before the route handlers.
+app.use(compression());
+
 app.use(express.json()); // parse JSON request bodies
 
 // Serve uploaded item images statically, e.g. http://localhost:5000/uploads/169999-file.jpg

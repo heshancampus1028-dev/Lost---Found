@@ -83,8 +83,14 @@ router.post('/', auth, safeUpload, async (req, res) => {
 });
 
 // 2. GET ROUTE: Get all items (public - no login required)
-// Query params: ?search=keyword&category=Electronics&status=lost
+// Query params: ?search=keyword&category=Electronics&status=lost&page=1&limit=20
 // http://localhost:5000/api/items
+//
+// NOTE (pagination): this now returns { items, total, page, totalPages }
+// instead of a plain array, so a large item collection doesn't have to be
+// fetched and sent in full on every request. Frontend pages calling this
+// endpoint need `response.data.items` instead of `response.data` -
+// see the note at the bottom of this file for the exact frontend change.
 router.get('/', async (req, res) => {
   try {
     const { search, category, status, location, dateFrom, dateTo } = req.query;
@@ -111,8 +117,26 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const items = await Item.find(filter).select('-verificationAnswerHash').sort({ createdAt: -1 });
-    res.json(items);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100); // cap at 100 to prevent abuse
+    const skip = (page - 1) * limit;
+
+    // Run the page query and the total count in parallel instead of sequentially
+    const [items, total] = await Promise.all([
+      Item.find(filter)
+        .select('-verificationAnswerHash')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Item.countDocuments(filter)
+    ]);
+
+    res.json({
+      items,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -360,5 +384,18 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+// ─────────────────────────────────────────────────────────────
+// FRONTEND CHANGE NEEDED after this pagination update:
+// Any page calling GET /items (Home.jsx, LostItems.jsx, FoundItems.jsx) must
+// change:
+//     const response = await api.get('/items', { params });
+//     setItems(response.data);              // OLD - was a plain array
+// to:
+//     const response = await api.get('/items', { params });
+//     setItems(response.data.items);        // NEW - array is now nested
+// `response.data.total` / `response.data.totalPages` are available if you
+// want to add page number buttons or a "Load more" button later.
+// ─────────────────────────────────────────────────────────────
 
 module.exports = router;

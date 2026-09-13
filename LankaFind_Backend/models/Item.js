@@ -16,12 +16,14 @@ const ItemSchema = new mongoose.Schema({
     type: String,
     enum: ['Electronics', 'Documents', 'Personal Items', 'Keys', 'Other'],
     required: true,
-    default: 'Other'
+    default: 'Other',
+    index: true // speeds up ?category= filter queries
   },
   status: {
     type: String,
     enum: ['lost', 'found'], // can only be one of these two
-    required: true
+    required: true,
+    index: true // speeds up ?status= filter queries
   },
   location: {
     type: String,
@@ -45,7 +47,8 @@ const ItemSchema = new mongoose.Schema({
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true // speeds up the "My Reports" (/items/my) query
   },
   // Uploaded image filenames (served from /uploads on the backend)
   images: {
@@ -70,8 +73,15 @@ const ItemSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
+    index: true // speeds up .sort({ createdAt: -1 }), used on every listing endpoint
   }
 });
+
+// Compound index matching the most common query shape on the Home/Lost/Found
+// pages: filter by status + category, then sort by newest first. A compound
+// index like this serves that exact filter+sort combo in one index lookup,
+// rather than MongoDB combining three separate single-field indexes.
+ItemSchema.index({ status: 1, category: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Item', ItemSchema);
