@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -36,6 +36,39 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit 
   const hasImage = item.images && item.images.length > 0;
   const isOwnItem = isAuthenticated && item.postedBy === user?.id;
 
+  // Full-size image viewer (lightbox). The card only ever loads a small ~400px
+  // thumbnail, so this fetches the full-resolution Cloudinary original instead
+  // when the user actually wants to look at the photo properly.
+  const [lightboxIndex, setLightboxIndex] = useState(null); // null = closed
+  const images = item.images || [];
+  const isLightboxOpen = lightboxIndex !== null;
+
+  const closeLightbox = () => setLightboxIndex(null);
+  const showPrev = () => setLightboxIndex((i) => (i - 1 + images.length) % images.length);
+  const showNext = () => setLightboxIndex((i) => (i + 1) % images.length);
+
+  // Escape closes, arrow keys move between photos when there's more than one.
+  // Body scroll is locked while open so the page behind doesn't move.
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (images.length > 1 && e.key === 'ArrowLeft') showPrev();
+      if (images.length > 1 && e.key === 'ArrowRight') showNext();
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLightboxOpen, images.length]);
+
   const handleMessageClick = () => {
     const params = new URLSearchParams({
       item: item._id,
@@ -55,13 +88,36 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit 
           even when the report has no photo. A muted placeholder icon fills
           the space instead of leaving it blank or shrinking the card. */}
       {hasImage ? (
-        <img
-          src={getThumbnailUrl(getImageUrl(item.images[0]))}
-          alt={item.title}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-40 object-cover"
-        />
+        <button
+          type="button"
+          onClick={() => setLightboxIndex(0)}
+          className="relative w-full h-40 group cursor-zoom-in overflow-hidden"
+          aria-label={`View full size photo of ${item.title}`}
+        >
+          <img
+            src={getThumbnailUrl(getImageUrl(item.images[0]))}
+            alt={item.title}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          {/* Hover hint so it's discoverable that the photo can be enlarged */}
+          <span className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2"
+              className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path strokeLinecap="round" d="M21 21l-4.3-4.3M11 8v6M8 11h6" />
+            </svg>
+          </span>
+          {images.length > 1 && (
+            <span className="absolute bottom-2 right-2 text-[10px] font-semibold text-white bg-black/60 rounded-full px-2 py-0.5">
+              1 / {images.length}
+            </span>
+          )}
+        </button>
       ) : (
         <div className="w-full h-40 flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-gray-300 dark:text-slate-600">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-12 h-12">
@@ -170,6 +226,68 @@ function ItemCard({ item, showActions = false, onStatusChange, onDelete, onEdit 
           )}
         </div>
       </div>
+
+      {/* Full-size image viewer. Clicking the backdrop or the X closes it;
+          with multiple photos, arrows (or the keyboard) move between them. */}
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 z-[10000] bg-black/90 flex items-center justify-center p-4"
+          onClick={closeLightbox}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            onClick={closeLightbox}
+            aria-label="Close"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+              <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); showPrev(); }}
+                aria-label="Previous photo"
+                className="absolute left-3 sm:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); showNext(); }}
+                aria-label="Next photo"
+                className="absolute right-3 sm:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* stopPropagation so clicking the photo itself doesn't close the viewer */}
+          <img
+            src={getImageUrl(images[lightboxIndex])}
+            alt={item.title}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+          />
+
+          <div className="absolute bottom-5 left-0 right-0 text-center text-white/80 text-sm px-4">
+            <p className="font-semibold">{item.title}</p>
+            {images.length > 1 && (
+              <p className="text-xs text-white/60 mt-0.5">{lightboxIndex + 1} / {images.length}</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

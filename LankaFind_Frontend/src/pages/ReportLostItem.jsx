@@ -49,6 +49,14 @@ function ReportLostItem() {
     setImages(validFiles.slice(0, 3));
   };
 
+  // Contact must be a 10-digit local phone number (e.g. 0718457457).
+  // Strip anything that isn't a digit as the user types and hard-cap the
+  // length, so a bad value can't be entered in the first place.
+  const handleContactChange = (e) => {
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setContact(digitsOnly);
+  };
+
   // Submit a new lost item report
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,6 +68,12 @@ function ReportLostItem() {
     }
 
     if (!title || !category || !location) return;
+
+    // Contact is optional, but if one was typed it has to be complete.
+    if (contact && contact.length !== 10) {
+      setError(t('invalidContact') || 'Phone number must be exactly 10 digits (e.g. 0718457457).');
+      return;
+    }
 
     setMessage('');
     setError('');
@@ -205,11 +219,18 @@ function ReportLostItem() {
               </label>
               <input 
                 type="tel" 
-                placeholder={t('placeholderContact')} 
+                inputMode="numeric"
+                maxLength={10}
+                placeholder={t('placeholderContact') || '0718457457'} 
                 value={contact}
-                onChange={(e) => setContact(e.target.value)}
+                onChange={handleContactChange}
                 className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-gray-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition"
               />
+              {contact && contact.length !== 10 && (
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                  {contact.length}/10 digits
+                </p>
+              )}
             </div>
 
             <div>
